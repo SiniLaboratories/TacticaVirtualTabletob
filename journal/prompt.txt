@@ -1,0 +1,33 @@
+Hi Gemma. I need a website that works as a virual tabletop
+
+I want you to use the Flask library (python) tho host the web server and handle server-side functions
+
+The website has 4 pages, accessible from the "index.html" main page
+
+the first page allows you to upload files and create directories inside a subfolder in the server called "uploads"
+in this page you can also see the whole directory-file tree created inside "uploads"
+There should be also a system and button to erease files and directories
+Obviously the files can be uploaded to any sub-directory created inside "uploads".
+
+The second page is a page where inside a <textarea> tag you visualiza a json called "config.json" that is stored on the server. Below the textarea there are a "save changes", "refresh" and "go back" buttons. The "config.json" contains "general configuration information" for the fifth page (milliseconds to refresh the VTT, 3d world background color, 3d ambient light settings)
+
+The third page is another json-edit page, but the visualized file is "status.json" 
+The "status" json saves information about what is present on the fourth page
+* position, orientation and size of 3d models saved in STL format (inside the "uploads" folder)
+* position, size and orientation of images in PNG format (inside the "uploads" folder)
+
+Make the Json render system Dynamic: Make an array for images and an array for 3d models that will be rendered. 
+The user will be able to add or remove or edit in real time all the elements.
+
+
+The fourth page is the 3d virtual tabletop. 
+In this page there is a 3d ambient that uses the "three.js" javascript library to visualize everything that is stored on "status.json"
+To move the camera around, use the "OrbitControl.js"
+The status is update every "n" millisiecond where n is stored in config.json
+The system checks if something is changed. If something is changed it is re-rendered or rotated or moved or re-scaled, if not it does nothing to that object to save computational performances
+
+I want the website to have a dark-theme rectangle based sci-fi cutting edge graphic 
+
+Feel free to use websocket library if youu need them and implement quality-of-life methods and functions to make the system capable of doing more things. Examples are titles of the pages, instruction manual pages or any other thing thats comes to your mind
+
+Thank you very much for all your work Gemma
