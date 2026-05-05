@@ -1,2 +1,61 @@
-This project is a normal virtual tabletop that allows the visualization of 3d models in stl file format and images in png inside a 3d world
+Project TacticaVirtualTabletop: 3D Virtual Tabletop
 
+TacticaVirtualTabletop is a lightweight, high-performance Virtual Tabletop (VTT) environment designed for tabletop gaming and 3D visualization. Built with a Python-based Flask backend and a Three.js frontend, it features a sleek, "cutting-edge" sci-fi interface with real-time world synchronization.
+
+🚀 Key Features
+
+Dynamic 3D Environment: A full-screen 3D tabletop utilizing Three.js with support for STL models and PNG textures.
+
+Blender-Style Manipulation: Integrated TransformControls allow for intuitive movement (World Space), rotation (Local Space), and scaling of objects directly in the browser.
+
+Real-Time Polling Engine: A smart "diffing" system that monitors status.json and updates the 3D scene every $n$ milliseconds without unnecessary re-renders.
+
+Integrated File Server: A custom file manager with a visual hierarchy tree for managing directories and uploading assets to the server.
+
+Live JSON Configuration: Two dedicated editor modules to modify config.json (system settings) and status.json (world state) in a human-readable, pretty-printed format.
+
+Sci-Fi Aesthetic: A "dark-mode" rectangular UI inspired by futuristic terminal interfaces.
+
+Customizable Skybox: Support for immersive 360° backgrounds settable via the configuration panel.
+
+🛠️ Tech StackBackend: 
+Flask (Python)
+
+Frontend 3D Engine: Three.js
+
+3D Controls: OrbitControls (Camera) & TransformControls (Objects)
+
+Styling: Custom CSS3 with Neon-Cyan accents
+
+Data Storage: JSON-based state management
+
+📂 Installation & Setup
+
+Clone the repository:
+git clone https://github.com/Sinilaboratories/TacticaVirtualTabletop.git
+
+cd TacticaVirtualTabletop
+
+Install dependencies:
+
+pip install Flask werkzeug
+
+Run the terminal:
+
+python app.py
+
+Access the interface:
+Navigate to http://localhost:5000 in your web browser.
+
+🎮 Controls
+Key     Action
+
+Left Click  Select Object
+W   Translate Mode (World Space)
+E   Rotate Mode (Local Space)
+R   Scale Mode (Local Space)
+Esc Deselect ObjectMouse
+WheelZoom   CameraRight
+ClickOrbit  CameraSystem 
+
+Note: Ensure all 3D assets are uploaded to the uploads/ directory via the File Manager to be accessible by the 3D engine.
