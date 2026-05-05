@@ -1,0 +1,20 @@
+{
+    "models": [
+        {
+            "id": "sample_mesh_1",
+            "file": "uploads/sample.stl",
+            "pos": [0, 0, 0],
+            "rot": [-1.57, 0, 0],
+            "scale": [1, 1, 1]
+        }
+    ],
+    "images": [
+        {
+            "id": "map_1",
+            "file": "uploads/map.png",
+            "pos": [0, -1, 0],
+            "rot": [-1.57, 0, 0],
+            "scale": [10, 10, 1]
+        }
+    ]
+}

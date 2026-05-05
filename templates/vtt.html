@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D VTT Environment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>body { margin: 0; overflow: hidden; background: #000; }</style>
+</head>
+<body>
+    <div class="vtt-ui"><a href="/" class="btn" style="background: rgba(31,40,51,0.8);">Exit Simulation</a></div>
+    <div id="vtt-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+
+    <script>
+        const container = document.getElementById('vtt-container');
+        let scene, camera, renderer, controls, ambientLight;
+        
+        // Dictionaries to track objects currently in the scene to avoid re-rendering
+        let trackedModels = {}; 
+        let trackedImages = {};
+        
+        let refreshRate = 2000; // Default, will be overwritten by config
+
+        async function initScene() {
+            // 1. Fetch Config
+            const configRes = await fetch('/api/config');
+            const config = await configRes.json();
+            refreshRate = config.refreshRate;
+
+            // 2. Setup Three.js basics
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(config.bgColor);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            
+            // 3. Setup Lights based on config
+            ambientLight = new THREE.AmbientLight(config.ambientLight, config.ambientIntensity);
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(10, 20, 10);
+            scene.add(dirLight);
+
+            // Start animation loop and data polling
+            animate();
+            pollStatus();
+        }
+
+        function updateObjectTransform(mesh, data) {
+            mesh.position.set(data.pos[0], data.pos[1], data.pos[2]);
+            mesh.rotation.set(data.rot[0], data.rot[1], data.rot[2]);
+            mesh.scale.set(data.scale[0], data.scale[1], data.scale[2]);
+        }
+
+        async function pollStatus() {
+            try {
+                const statusRes = await fetch('/api/status');
+                const status = await statusRes.json();
+
+                // DIFFING ENGINE FOR MODELS (STLs)
+                const newModelIds = status.models.map(m => m.id);
+                
+                // Remove deleted models
+                for (let id in trackedModels) {
+                    if (!newModelIds.includes(id)) {
+                        scene.remove(trackedModels[id]);
+                        delete trackedModels[id];
+                    }
+                }
+
+                // Add or update models
+                status.models.forEach(modelData => {
+                    if (trackedModels[modelData.id]) {
+                        // Exists: Update position/rotation/scale only
+                        updateObjectTransform(trackedModels[modelData.id], modelData);
+                    } else {
+                        // New: Load STL
+                        const loader = new THREE.STLLoader();
+                        loader.load('/' + modelData.file, function (geometry) {
+                            const material = new THREE.MeshStandardMaterial({ color: 0x66fcf1, wireframe: true });
+                            const mesh = new THREE.Mesh(geometry, material);
+                            updateObjectTransform(mesh, modelData);
+                            scene.add(mesh);
+                            trackedModels[modelData.id] = mesh;
+                        });
+                    }
+                });
+
+                // DIFFING ENGINE FOR IMAGES (PNGs)
+                const newImageIds = status.images.map(i => i.id);
+                
+                // Remove deleted images
+                for (let id in trackedImages) {
+                    if (!newImageIds.includes(id)) {
+                        scene.remove(trackedImages[id]);
+                        delete trackedImages[id];
+                    }
+                }
+
+                // Add or update images
+                status.images.forEach(imgData => {
+                    if (trackedImages[imgData.id]) {
+                        updateObjectTransform(trackedImages[imgData.id], imgData);
+                    } else {
+                        const loader = new THREE.TextureLoader();
+                        loader.load('/' + imgData.file, function (texture) {
+                            const geometry = new THREE.PlaneGeometry(1, 1);
+                            const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true });
+                            const mesh = new THREE.Mesh(geometry, material);
+                            updateObjectTransform(mesh, imgData);
+                            scene.add(mesh);
+                            trackedImages[imgData.id] = mesh;
+                        });
+                    }
+                });
+
+            } catch (err) {
+                console.error("Polling error:", err);
+            }
+
+            // Schedule next poll based on config
+            setTimeout(pollStatus, refreshRate);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        initScene();
+    </script>
+</body>
+</html>

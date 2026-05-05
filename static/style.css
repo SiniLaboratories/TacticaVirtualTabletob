@@ -1,0 +1,74 @@
+:root {
+    --bg-color: #0b0c10;
+    --panel-bg: #1f2833;
+    --accent: #66fcf1;
+    --accent-dim: #45a29e;
+    --text: #c5c6c7;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text);
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+h1, h2, h3 { color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
+
+.container { max-width: 1000px; margin: 0 auto; }
+
+/* Sci-fi Panels */
+.panel {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--accent-dim);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(102, 252, 241, 0.1);
+}
+
+/* Sharp Rectangular Buttons */
+button, .btn {
+    background-color: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 10px 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    transition: 0.2s all ease-in-out;
+}
+
+button:hover, .btn:hover {
+    background-color: var(--accent);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--accent);
+}
+
+/* Forms and Textareas */
+input, select, textarea {
+    background-color: var(--bg-color);
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    margin-bottom: 15px;
+}
+
+textarea { height: 400px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+/* File Tree */
+.tree-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #333; }
+.tree-item form { display: inline; }
+.tree-item button { padding: 2px 8px; font-size: 12px; border-color: red; color: red; }
+.tree-item button:hover { background-color: red; color: white; box-shadow: 0 0 10px red;}
+
+/* Fullscreen VTT */
+#vtt-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0;}
+.vtt-ui { position: absolute; top: 10px; left: 10px; z-index: 100; }

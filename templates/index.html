@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VTT Core System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>System Terminal: Virtual Tabletop</h1>
+        <div class="panel">
+            <h2>Select Module</h2>
+            <br>
+            <a href="/files" class="btn">Module 1: File Server (Uploads)</a><br><br>
+            <a href="/editor/config.json" class="btn">Module 2: Core Configuration (config.json)</a><br><br>
+            <a href="/editor/status.json" class="btn">Module 3: World Status (status.json)</a><br><br>
+            <a href="/vtt" class="btn" style="border-color: #fff; color: #fff;">Module 4: Launch 3D Tabletop</a>
+        </div>
+    </div>
+</body>
+</html>
