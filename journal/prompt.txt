@@ -1,3 +1,5 @@
+INITIAL PROMPT:
+
 Hi Gemma. I need a website that works as a virual tabletop
 
 I want you to use the Flask library (python) tho host the web server and handle server-side functions
@@ -31,3 +33,25 @@ I want the website to have a dark-theme rectangle based sci-fi cutting edge grap
 Feel free to use websocket library if youu need them and implement quality-of-life methods and functions to make the system capable of doing more things. Examples are titles of the pages, instruction manual pages or any other thing thats comes to your mind
 
 Thank you very much for all your work Gemma
+
+SECOND PROMPT
+
+It works perfectly!, thank you very much
+
+I have to ask you to add some improvements:
+* add some little graphic details in the file system manager to be able to recognize better the filesystem hierarchy.
+* Make the textareas in json editors bigger. Can you make them nearly-fullscreen? Remember to keep the interface responsive
+* Remove the wireframe-type rendering and add the possibility to choose, inside "world.json", the color of the 3d object mesh faces.
+* Add the "border" to the 3d objects (in three js is called "EdgesGeometry"). In world.json one can choose the EdgesGeometry color and the thresholdAngle
+
+* add a flag in the "world.json" objects called "unselectable". If it is true, it cannot be selected from the virtual tabletop page, but can only be modified from the json editor page
+* Add the possibility, from the vtt page, to set every parameter (contained in world.json) of a certain selected object (except the "unselectable" tag). 
+When an object (3d or image) is selected with the mouse click make appear a rototranslation draggable interface like the blender one
+* if with this modification system you have to rewrite the json, add a system that formats the json in a human-readable format (pretty print)
+
+Thank you. Your help has been essential for this project so far. I coult not mkae it without you.
+
+FUTURE IDEAS:
+--> Add the sky png image
+--> add distance meter between objects 
+--> Add aura idicators

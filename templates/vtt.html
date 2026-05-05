@@ -7,29 +7,37 @@
 </head>
 <body>
     <div class="vtt-ui"><a href="/" class="btn" style="background: rgba(31,40,51,0.8);">Exit Simulation</a></div>
+    
+    <div class="vtt-instructions">
+        <strong>VTT Controls:</strong><br>
+        [Click]: Select Object<br>
+        [W]: Translate | [E]: Rotate | [R]: Scale<br>
+        [Esc]: Deselect
+    </div>
+
     <div id="vtt-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 
     <script>
         const container = document.getElementById('vtt-container');
-        let scene, camera, renderer, controls, ambientLight;
+        let scene, camera, renderer, orbitControls, transformControl;
+        let raycaster, mouse;
         
-        // Dictionaries to track objects currently in the scene to avoid re-rendering
         let trackedModels = {}; 
         let trackedImages = {};
+        let currentStatusData = null; // Holds the latest JSON state
         
-        let refreshRate = 2000; // Default, will be overwritten by config
+        let refreshRate = 2000;
 
         async function initScene() {
-            // 1. Fetch Config
             const configRes = await fetch('/api/config');
             const config = await configRes.json();
             refreshRate = config.refreshRate;
 
-            // 2. Setup Three.js basics
             scene = new THREE.Scene();
             scene.background = new THREE.Color(config.bgColor);
 
@@ -40,54 +48,153 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             container.appendChild(renderer.domElement);
 
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            // Orbit Controls (Camera movement)
+            orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            // Transform Controls (Object manipulation)
+            transformControl = new THREE.TransformControls(camera, renderer.domElement);
             
-            // 3. Setup Lights based on config
-            ambientLight = new THREE.AmbientLight(config.ambientLight, config.ambientIntensity);
-            scene.add(ambientLight);
-            
+            // Disable OrbitControls while dragging an object
+            transformControl.addEventListener('dragging-changed', function (event) {
+                orbitControls.enabled = !event.value;
+                if (!event.value) { 
+                    // When dragging finishes, save to server
+                    saveSelectedObjectState();
+                }
+            });
+            scene.add(transformControl);
+
+            // Raycaster for mouse clicks
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Lights
+            scene.add(new THREE.AmbientLight(config.ambientLight, config.ambientIntensity));
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
             dirLight.position.set(10, 20, 10);
             scene.add(dirLight);
 
-            // Start animation loop and data polling
+            setupEventListeners();
             animate();
             pollStatus();
         }
 
+        function setupEventListeners() {
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Keyboard shortcuts for Transform tool
+            window.addEventListener('keydown', function (event) {
+                switch (event.key.toLowerCase()) {
+                    case 'w': transformControl.setMode('translate'); break;
+                    case 'e': transformControl.setMode('rotate'); break;
+                    case 'r': transformControl.setMode('scale'); break;
+                    case 'escape': transformControl.detach(); break;
+                }
+            });
+
+            // Click to select
+            window.addEventListener('mousedown', function(event) {
+                // Ignore clicks if we are interacting with UI or actively dragging the transform control
+                if(event.target.tagName !== 'CANVAS' || transformControl.dragging) return;
+
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                // Get all selectable meshes
+                let interactables = [];
+                [...Object.values(trackedModels), ...Object.values(trackedImages)].forEach(mesh => {
+                    if (mesh.userData && !mesh.userData.unselectable) {
+                        interactables.push(mesh);
+                    }
+                });
+
+                const intersects = raycaster.intersectObjects(interactables, false);
+
+                if (intersects.length > 0) {
+                    transformControl.attach(intersects[0].object);
+                } else {
+                    transformControl.detach();
+                }
+            });
+        }
+
         function updateObjectTransform(mesh, data) {
+            // Do not update from network if this specific object is currently being dragged
+            if (transformControl.object === mesh) return;
+
             mesh.position.set(data.pos[0], data.pos[1], data.pos[2]);
             mesh.rotation.set(data.rot[0], data.rot[1], data.rot[2]);
             mesh.scale.set(data.scale[0], data.scale[1], data.scale[2]);
         }
 
+        async function saveSelectedObjectState() {
+            if (!transformControl.object || !currentStatusData) return;
+            
+            const mesh = transformControl.object;
+            const objId = mesh.userData.id;
+            const objType = mesh.userData.type; // 'models' or 'images'
+
+            // Find object in our local copy of the status data
+            const item = currentStatusData[objType].find(i => i.id === objId);
+            if (item) {
+                item.pos = [parseFloat(mesh.position.x.toFixed(3)), parseFloat(mesh.position.y.toFixed(3)), parseFloat(mesh.position.z.toFixed(3))];
+                item.rot = [parseFloat(mesh.rotation.x.toFixed(3)), parseFloat(mesh.rotation.y.toFixed(3)), parseFloat(mesh.rotation.z.toFixed(3))];
+                item.scale = [parseFloat(mesh.scale.x.toFixed(3)), parseFloat(mesh.scale.y.toFixed(3)), parseFloat(mesh.scale.z.toFixed(3))];
+
+                // POST back to server
+                await fetch('/api/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentStatusData)
+                });
+            }
+        }
+
         async function pollStatus() {
             try {
                 const statusRes = await fetch('/api/status');
-                const status = await statusRes.json();
+                currentStatusData = await statusRes.json();
+                const status = currentStatusData;
 
-                // DIFFING ENGINE FOR MODELS (STLs)
+                // --- 3D MODELS ---
                 const newModelIds = status.models.map(m => m.id);
-                
-                // Remove deleted models
                 for (let id in trackedModels) {
                     if (!newModelIds.includes(id)) {
+                        if(transformControl.object === trackedModels[id]) transformControl.detach();
                         scene.remove(trackedModels[id]);
                         delete trackedModels[id];
                     }
                 }
 
-                // Add or update models
                 status.models.forEach(modelData => {
                     if (trackedModels[modelData.id]) {
-                        // Exists: Update position/rotation/scale only
                         updateObjectTransform(trackedModels[modelData.id], modelData);
                     } else {
-                        // New: Load STL
                         const loader = new THREE.STLLoader();
                         loader.load('/' + modelData.file, function (geometry) {
-                            const material = new THREE.MeshStandardMaterial({ color: 0x66fcf1, wireframe: true });
+                            // Apply Solid Color
+                            const material = new THREE.MeshStandardMaterial({ 
+                                color: modelData.color || 0x45a29e,
+                                roughness: 0.5, metalness: 0.2
+                            });
                             const mesh = new THREE.Mesh(geometry, material);
+                            
+                            // Apply EdgesGeometry
+                            const threshold = modelData.edgeThresholdAngle !== undefined ? modelData.edgeThresholdAngle : 15;
+                            const edgesGeom = new THREE.EdgesGeometry(geometry, threshold);
+                            const edgesMat = new THREE.LineBasicMaterial({ color: modelData.edgeColor || 0x66fcf1 });
+                            const edges = new THREE.LineSegments(edgesGeom, edgesMat);
+                            mesh.add(edges);
+
+                            // Set metadata for raycasting
+                            mesh.userData = { id: modelData.id, type: 'models', unselectable: modelData.unselectable };
+                            
                             updateObjectTransform(mesh, modelData);
                             scene.add(mesh);
                             trackedModels[modelData.id] = mesh;
@@ -95,18 +202,16 @@
                     }
                 });
 
-                // DIFFING ENGINE FOR IMAGES (PNGs)
+                // --- IMAGES ---
                 const newImageIds = status.images.map(i => i.id);
-                
-                // Remove deleted images
                 for (let id in trackedImages) {
                     if (!newImageIds.includes(id)) {
+                        if(transformControl.object === trackedImages[id]) transformControl.detach();
                         scene.remove(trackedImages[id]);
                         delete trackedImages[id];
                     }
                 }
 
-                // Add or update images
                 status.images.forEach(imgData => {
                     if (trackedImages[imgData.id]) {
                         updateObjectTransform(trackedImages[imgData.id], imgData);
@@ -116,6 +221,9 @@
                             const geometry = new THREE.PlaneGeometry(1, 1);
                             const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true });
                             const mesh = new THREE.Mesh(geometry, material);
+                            
+                            mesh.userData = { id: imgData.id, type: 'images', unselectable: imgData.unselectable };
+
                             updateObjectTransform(mesh, imgData);
                             scene.add(mesh);
                             trackedImages[imgData.id] = mesh;
@@ -126,22 +234,14 @@
             } catch (err) {
                 console.error("Polling error:", err);
             }
-
-            // Schedule next poll based on config
             setTimeout(pollStatus, refreshRate);
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
+            orbitControls.update();
             renderer.render(scene, camera);
         }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
 
         initScene();
     </script>

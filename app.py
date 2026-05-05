@@ -105,6 +105,18 @@ def get_config():
 def get_status():
     return jsonify(load_json('status.json'))
 
+@app.route('/api/status', methods=['GET', 'POST'])
+def handle_status():
+    if request.method == 'POST':
+        # Receive updated JSON from the VTT page
+        new_data = request.json
+        # save_json automatically formats it with indent=4 (pretty print)
+        save_json('status.json', new_data)
+        return jsonify({"status": "success"})
+    
+    # GET request behavior
+    return jsonify(load_json('status.json'))
+
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     from flask import send_from_directory

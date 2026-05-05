@@ -1,20 +1,25 @@
 {
     "models": [
         {
-            "id": "sample_mesh_1",
-            "file": "uploads/sample.stl",
+            "id": "hero_mini",
+            "file": "uploads/hero.stl",
             "pos": [0, 0, 0],
             "rot": [-1.57, 0, 0],
-            "scale": [1, 1, 1]
+            "scale": [1, 1, 1],
+            "color": "#880000",
+            "edgeColor": "#ff0000",
+            "edgeThresholdAngle": 10,
+            "unselectable": false
         }
     ],
     "images": [
         {
-            "id": "map_1",
+            "id": "dungeon_map",
             "file": "uploads/map.png",
-            "pos": [0, -1, 0],
+            "pos": [0, -0.5, 0],
             "rot": [-1.57, 0, 0],
-            "scale": [10, 10, 1]
+            "scale": [20, 20, 1],
+            "unselectable": true 
         }
     ]
 }

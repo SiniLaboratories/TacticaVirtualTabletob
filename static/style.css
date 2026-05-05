@@ -72,3 +72,49 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 /* Fullscreen VTT */
 #vtt-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0;}
 .vtt-ui { position: absolute; top: 10px; left: 10px; z-index: 100; }
+
+
+/* --- UI Improvements --- */
+
+/* Fullscreen JSON Editor */
+.fullscreen-editor {
+    height: calc(100vh - 250px); /* Responsive vertical height */
+    min-height: 400px;
+    resize: none;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* File Manager Hierarchy Details */
+.tree-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(102, 252, 241, 0.1);
+    position: relative;
+}
+
+/* Creates the vertical line and L-bracket for the hierarchy */
+.tree-item::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 0;
+    bottom: 50%;
+    border-left: 1px dashed var(--accent-dim);
+    border-bottom: 1px dashed var(--accent-dim);
+    width: 10px;
+}
+
+/* VTT Overlay Instructions */
+.vtt-instructions {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(31, 40, 51, 0.8);
+    padding: 15px;
+    border: 1px solid var(--accent);
+    color: var(--text);
+    pointer-events: none; /* Let clicks pass through to the 3D canvas */
+}
