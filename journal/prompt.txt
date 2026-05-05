@@ -55,3 +55,8 @@ FUTURE IDEAS:
 --> Add the sky png image
 --> add distance meter between objects 
 --> Add aura idicators
+
+THIRD PROMPT
+* the graghics of thr 3d models work
+* the css of the filee tree is not what I wanted.  need to understand which directory is inside which directory. 
+I want subdirectories to be indented to the right respectively to theri parent directory

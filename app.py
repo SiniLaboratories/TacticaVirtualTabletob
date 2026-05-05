@@ -62,13 +62,32 @@ def file_manager():
 
     # Generate file tree
     tree = []
+    # Using os.walk to get a structured flow
     for root, dirs, files in os.walk(app.config['UPLOAD_FOLDER']):
+        # Calculate depth by counting separators in the relative path
         rel_path = os.path.relpath(root, app.config['UPLOAD_FOLDER'])
-        if rel_path == '.': rel_path = ''
-        tree.append({"path": rel_path, "type": "dir", "name": os.path.basename(root) or "uploads/"})
+        
+        # level 0 is root, level 1 is first subfolder, etc.
+        level = 0 if rel_path == '.' else rel_path.count(os.sep) + 1
+        
+        # Add the directory itself
+        display_name = os.path.basename(root) if rel_path != '.' else "uploads/"
+        tree.append({
+            "path": "" if rel_path == '.' else rel_path, 
+            "type": "dir", 
+            "name": display_name, 
+            "level": level
+        })
+
+        # Add files within this directory
         for file in files:
-            file_rel_path = os.path.join(rel_path, file)
-            tree.append({"path": file_rel_path, "type": "file", "name": file})
+            file_rel_path = os.path.join(rel_path, file) if rel_path != '.' else file
+            tree.append({
+                "path": file_rel_path, 
+                "type": "file", 
+                "name": file, 
+                "level": level + 1
+            })
 
     # Get list of directories for the upload dropdown
     directories = [''] + [os.path.relpath(r, app.config['UPLOAD_FOLDER']) for r, d, f in os.walk(app.config['UPLOAD_FOLDER']) if os.path.relpath(r, app.config['UPLOAD_FOLDER']) != '.']

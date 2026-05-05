@@ -32,21 +32,25 @@
         </div>
         <div class="panel">
             <h3>Directory Tree</h3>
-            {% for item in tree %}
-                <div class="tree-item" style="margin-left: {{ (item.path.count('/') + 1) * 20 }}px">
-                    <span>
-                        {% if item.type == 'dir' %} 📂 {% else %} 📄 {% endif %} 
-                        <strong style="color: {% if item.type == 'dir' %}#fff{% else %}var(--accent){% endif %}">
-                            {{ item.name }}
-                        </strong>
-                    </span>
-                    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this?');">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="target_path" value="{{ item.path }}">
-                        <button type="submit">DELETE</button>
-                    </form>
-                </div>
-            {% endfor %}
+            <div class="tree-container">
+                {% for item in tree %}
+                    <div class="tree-item" style="margin-left: {{ item.level * 25 }}px;">
+                        <span>
+                            {% if item.type == 'dir' %}
+                                <span class="folder-label">📁 {{ item.name }}</span>
+                            {% else %}
+                                <span class="file-label">📄 {{ item.name }}</span>
+                            {% endif %}
+                        </span>
+
+                        <form method="POST" onsubmit="return confirm('Erase this data?');" style="margin:0;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="target_path" value="{{ item.path }}">
+                            <button type="submit" class="delete-btn">ERASE</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
         <a href="/" class="btn">Go Back</a>
     </div>

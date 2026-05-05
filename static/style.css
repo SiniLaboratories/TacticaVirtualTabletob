@@ -118,3 +118,53 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     color: var(--text);
     pointer-events: none; /* Let clicks pass through to the 3D canvas */
 }
+
+
+
+/* Container for the whole tree */
+.tree-container {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 1px solid var(--accent-dim); /* Root vertical line */
+}
+
+.tree-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 2px;
+    position: relative;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.tree-item:hover {
+    background: rgba(102, 252, 241, 0.05);
+    border-color: rgba(102, 252, 241, 0.3);
+}
+
+/* The L-shaped branch connector */
+.tree-item::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: -15px;
+    width: 15px;
+    height: 25px;
+    border-left: 1px solid var(--accent-dim);
+    border-bottom: 1px solid var(--accent-dim);
+    pointer-events: none;
+}
+
+/* Folders look distinct */
+.folder-label {
+    color: #ffffff;
+    font-weight: bold;
+    text-shadow: 0 0 5px var(--accent-dim);
+}
+
+.file-label {
+    color: var(--accent);
+    opacity: 0.8;
+}

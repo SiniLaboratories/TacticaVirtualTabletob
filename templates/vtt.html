@@ -98,6 +98,7 @@
 
             // Click to select
             window.addEventListener('mousedown', function(event) {
+                console.log("Mouse click");
                 // Ignore clicks if we are interacting with UI or actively dragging the transform control
                 if(event.target.tagName !== 'CANVAS' || transformControl.dragging) return;
 
