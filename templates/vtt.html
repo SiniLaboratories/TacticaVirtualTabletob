@@ -80,13 +80,41 @@
         }
 
         function setupEventListeners() {
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+            // Attach listener to the canvas, not the window
+            renderer.domElement.addEventListener('pointerdown', function(event) {
+                console.log("Mouse click triggered on canvas");
+
+                // Calculate mouse position relative to the canvas
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                // Filter objects: Only those that are NOT unselectable
+                let interactables = [];
+                scene.traverse(child => {
+                    if (child.isMesh && child.userData.id) {
+                        if (child.userData.unselectable !== true) {
+                            interactables.push(child);
+                        }
+                    }
+                });
+
+                const intersects = raycaster.intersectObjects(interactables, false);
+
+                if (intersects.length > 0) {
+                    console.log("Selected:", intersects[0].object.userData.id);
+                    transformControl.attach(intersects[0].object);
+                } else {
+                    // Only detach if we aren't currently clicking the gizmo itself
+                    if (!transformControl.dragging) {
+                        transformControl.detach();
+                    }
+                }
             });
 
-            // Keyboard shortcuts for Transform tool
+            // Keys for gizmo modes
             window.addEventListener('keydown', function (event) {
                 switch (event.key.toLowerCase()) {
                     case 'w': transformControl.setMode('translate'); break;
@@ -96,32 +124,10 @@
                 }
             });
 
-            // Click to select
-            window.addEventListener('mousedown', function(event) {
-                console.log("Mouse click");
-                // Ignore clicks if we are interacting with UI or actively dragging the transform control
-                if(event.target.tagName !== 'CANVAS' || transformControl.dragging) return;
-
-                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-                raycaster.setFromCamera(mouse, camera);
-
-                // Get all selectable meshes
-                let interactables = [];
-                [...Object.values(trackedModels), ...Object.values(trackedImages)].forEach(mesh => {
-                    if (mesh.userData && !mesh.userData.unselectable) {
-                        interactables.push(mesh);
-                    }
-                });
-
-                const intersects = raycaster.intersectObjects(interactables, false);
-
-                if (intersects.length > 0) {
-                    transformControl.attach(intersects[0].object);
-                } else {
-                    transformControl.detach();
-                }
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
             });
         }
 
@@ -174,7 +180,10 @@
                 }
 
                 status.models.forEach(modelData => {
-                    if (trackedModels[modelData.id]) {
+                    const mesh = trackedModels[modelData.id];
+                    if (mesh) {
+                        // IMPORTANT: If this object is currently being manipulated, SKIP the network update
+                        if (transformControl.object === mesh) return;
                         updateObjectTransform(trackedModels[modelData.id], modelData);
                     } else {
                         const loader = new THREE.STLLoader();

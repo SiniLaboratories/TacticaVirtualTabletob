@@ -60,3 +60,15 @@ THIRD PROMPT
 * the graghics of thr 3d models work
 * the css of the filee tree is not what I wanted.  need to understand which directory is inside which directory. 
 I want subdirectories to be indented to the right respectively to theri parent directory
+
+FOURTH PROMPT
+This thing got fixed, thank you
+Other bugs are rising, unfortunately
+* the vtt-instructions panel desappears right at the beginning of the three.js page loading. It's probably covered by the three js canvas
+* The drag-system is not working. The mouse click does not trigger anything. I implemented:
+ // Click to select
+            window.addEventListener('mousedown', function(event) {
+                console.log("Mouse click");
+                ///rest of the code 
+And it never prints "Mouse click"
+

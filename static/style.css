@@ -168,3 +168,22 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
     color: var(--accent);
     opacity: 0.8;
 }
+
+.vtt-ui, .vtt-instructions {
+    position: absolute;
+    z-index: 999; /* Higher than the canvas */
+    pointer-events: none; /* Allows clicks to pass through to the 3D world */
+}
+
+/* We must re-enable pointer events for the button specifically */
+.vtt-ui a.btn {
+    pointer-events: auto; 
+}
+
+.vtt-instructions {
+    bottom: 20px;
+    left: 20px;
+    background: rgba(11, 12, 16, 0.85); /* Slightly darker for readability */
+    padding: 15px;
+    border: 1px solid var(--accent);
+}
