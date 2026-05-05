@@ -12,7 +12,7 @@
         <strong>VTT Controls:</strong><br>
         [Click]: Select Object<br>
         [W]: Translate | [E]: Rotate | [R]: Scale<br>
-        [Esc]: Deselect
+        [Esc]: Deselect <!--[X]: Toggle World/Local Space<br> -->
     </div>
 
     <div id="vtt-container"></div>
@@ -53,7 +53,9 @@
 
             // Transform Controls (Object manipulation)
             transformControl = new THREE.TransformControls(camera, renderer.domElement);
-            
+            transformControl.setSpace("local");
+            transformControl.setRotationSnap(45/180*Math.PI);
+
             // Disable OrbitControls while dragging an object
             transformControl.addEventListener('dragging-changed', function (event) {
                 orbitControls.enabled = !event.value;
@@ -82,7 +84,7 @@
         function setupEventListeners() {
             // Attach listener to the canvas, not the window
             renderer.domElement.addEventListener('pointerdown', function(event) {
-                console.log("Mouse click triggered on canvas");
+                //console.log("Mouse click triggered on canvas");
 
                 // Calculate mouse position relative to the canvas
                 const rect = renderer.domElement.getBoundingClientRect();
@@ -120,6 +122,11 @@
                     case 'w': transformControl.setMode('translate'); break;
                     case 'e': transformControl.setMode('rotate'); break;
                     case 'r': transformControl.setMode('scale'); break;
+                    /*case 'x': // Toggle between World and Local space
+                        const currentSpace = transformControl.space === 'world' ? 'local' : 'world';
+                        transformControl.setSpace(currentSpace);
+                        console.log("Transform space set to: " + currentSpace);
+                       break;*/ 
                     case 'escape': transformControl.detach(); break;
                 }
             });
