@@ -72,3 +72,10 @@ Other bugs are rising, unfortunately
                 ///rest of the code 
 And it never prints "Mouse click"
 
+
+FIFTH Prompt:
+
+I figured out how to fix it, thank you
+Could you please add a skybox (selectable from a png image) to the background?? The configuration should be settable via the config.json file
+
+Thank you again

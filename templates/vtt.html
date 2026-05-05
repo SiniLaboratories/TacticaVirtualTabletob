@@ -34,16 +34,36 @@
         let refreshRate = 2000;
 
         async function initScene() {
+            // 1. Fetch Config
             const configRes = await fetch('/api/config');
             const config = await configRes.json();
             refreshRate = config.refreshRate;
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(config.bgColor);
 
+            // --- SKYBOX / BACKGROUND LOGIC ---
+            if (config.skybox) {
+                const loader = new THREE.TextureLoader();
+                loader.load('/' + config.skybox, 
+                    (texture) => {
+                        // Set mapping to Equirectangular for a spherical wrap effect
+                        texture.mapping = THREE.EquirectangularReflectionMapping;
+                        scene.background = texture;
+                    },
+                    undefined,
+                    (err) => {
+                        console.warn("Skybox failed to load, falling back to bgColor", err);
+                        scene.background = new THREE.Color(config.bgColor);
+                    }
+                );
+            } else {
+                scene.background = new THREE.Color(config.bgColor);
+            }
+
+            // 2. Setup Camera, Renderer, etc.
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 5, 10);
-
+            
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             container.appendChild(renderer.domElement);
